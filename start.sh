@@ -119,6 +119,22 @@ else
         fi
     fi
 
+    # Grafikkarte erkennen und den passenden Treiber installieren
+    gpu_info=$(lspci | grep -E "VGA|3D")
+    if echo "$gpu_info" | grep -iq "NVIDIA"; then
+        echo "NVIDIA-Grafikkarte erkannt. Installiere NVIDIA-Treiber..."
+        # pacman -S --noconfirm nvidia nvidia-utils
+    elif echo "$gpu_info" | grep -iq "AMD"; then
+        echo "AMD-Grafikkarte erkannt. Installiere AMDGPU-Treiber..."
+        # pacman -S --noconfirm xf86-video-amdgpu
+    elif echo "$gpu_info" | grep -iq "Intel"; then
+        echo "Intel-Grafikkarte erkannt. Installiere Intel-Treiber..."
+        # pacman -S --noconfirm xf86-video-intel
+    else
+        echo "Unbekannte Grafikkarte: $gpu_info"
+    fi
+
+
     echo "Willkommen beim Pre-Installskript"
     echo "Welches DE oder welcher WM soll installiert werden?"
     read -p "plasma, gnome, cinnamon, bspwm, qtile, hyprland: " desktop
