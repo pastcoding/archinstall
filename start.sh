@@ -103,7 +103,7 @@ else
     # Wenn im Live System wird das Script verwendet um weitergehende Programme zu installieren
     # YAY (AUR Helper) Installation
     git clone https://aur.archlinux.org/yay.git && cd yay && makepkg -si && cd && rm -rf yay
-    git clone https://github.com/pastcoding/archinstall.git
+    git clone https://github.com/pastcoding/archinstall.git && bash archinstall/start.sh
 
     echo "Willkommen beim Pre-Installskript"
     echo "Welches DE oder welcher WM soll installiert werden?"
