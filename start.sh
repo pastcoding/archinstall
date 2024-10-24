@@ -102,12 +102,26 @@ EOF
 else
     # Wenn im Live System wird das Script verwendet um weitergehende Programme zu installieren
     # YAY (AUR Helper) Installation
-    git clone https://aur.archlinux.org/yay.git && cd yay && makepkg -si && cd && rm -rf yay
-    git clone https://github.com/pastcoding/archinstall.git && bash archinstall/start.sh
+    install_yay() {
+            cd /tmp || exit
+            git clone https://aur.archlinux.org/yay.git
+            cd yay || exit
+            makepkg -si --noconfirm
+            echo "YAY wurde erfolgreich installiert."
+    }
+
+    if ! command -v yay &> /dev/null; then
+        if pacman -Q base-devel git &> /dev/null; then
+            install_yay
+        else
+            pacman -Syu base-devel git
+            install_yay
+        fi
+    fi
 
     echo "Willkommen beim Pre-Installskript"
     echo "Welches DE oder welcher WM soll installiert werden?"
-    read -p "plasma, gnome, cinnamon, bspwm, qtile, hyprland" desktop
+    read -p "plasma, gnome, cinnamon, bspwm, qtile, hyprland: " desktop
     if [ $desktop == "plasma" ]; then
         echo "PLASMA"
     elif [ $desktop == "gnome" ]; then
