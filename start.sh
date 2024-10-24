@@ -82,16 +82,16 @@ sed -i '171s/.//' /etc/locale.gen
 locale-gen
 echo "LANG=en_US.UTF-8" >/etc/locale.conf
 echo "olymp" >/etc/hostname
-echo "root:passwd" | chpasswd
+echo "root:pwd4root" | chpasswd
 pacman -S --noconfirm grub efibootmgr networkmanager openssh
-grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB
+grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
 grub-mkconfig -o /boot/grub/grub.cfg
 systemctl enable NetworkManager
 systemctl enable sshd
 useradd -mG wheel fenix
 echo fenix:pwd4root | chpasswd
 cp /etc/sudoers /tmp/sudoers.tmp
-sed -i '/^root.*/a user ALL=(ALL) NOPASSWD:ALL' /tmp/sudoers.tmp
+sed -i 's/^# \(%wheel ALL=(ALL:ALL) NOPASSWD: ALL\)/\1/' /tmp/sudoers.tmp
 visudo -cf /tmp/sudoers.tmp
 cp /tmp/sudoers.tmp /etc/sudoers
 EOF
