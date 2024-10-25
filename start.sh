@@ -122,16 +122,39 @@ EOF
     echo "Arch Linux Installation abgeschlossen! Bitte neu starten."
 else
     # Im Live System das Script verwenden um weitergehende Programme zu installieren
+    # Im Live System muss das Script mit root Rechten gestartet werden (Installieren von Apps und editieren von Systemdateien)
+
+
     # Wir legen hier an dieser Stelle fest, welche Programme in den "Paketen" enthalten sind.
     # Es kann jederzeit auch angepasst werden hier im Script und eigene Programme hinzugefuegt oder andere entfernt werden
+
     DEFAULT="tmux tree-sitter-cli nodejs npm python zoxide eza yazi btop bat ripgrep fd fzf zsh zsh-autosuggestions zsh-completions zsh-syntax-highlighting"
     WM_DEFAULT="sxhkd kitty dunst picom feh polybar thunar"
     GAMING="steam"
-    PLASMA=""
-    GNOME=""
-    CINNAMON=""
-    BSPWM="bspwm"
-    QTILE="qtile"
+
+    # Grafikkarte erkennen und den passenden Treiber installieren
+    gpu_info=$(lspci | grep -E "VGA|3D")
+    if echo "$gpu_info" | grep -iq "NVIDIA"; then
+        echo "Welche Nvidia Karte welchen Treiber braucht, kann man im Wiki oder bei Nvidia nachlesen."
+        echo "https://github.com/NVIDIA/open-gpu-kernel-modules?tab=readme-ov-file#compatible-gpus"
+        echo "https://wiki.archlinux.org/title/NVIDIA#Installation"
+        read -p "Brauchst du die Proprietary Open Source Treiber von NVIDIA? (j/n)" answer_nvidia_driver
+        if [ $answer_nvidia_driver == "j" || $answer_nvidia_driver == "y" ]; then
+            GPU="nvidia-open nvidia-utils lib32-nvidia-utils nvidia-settings"
+        elif [ $answer_nvidia_driver == "n" ]; then
+            GPU="nvidia nvidia-utils lib32-nvidia-utils nvidia-settings"
+        else
+            echo "Keine korrekte Antwort. Es wird kein NVIDIA Treiber installiert"
+            GPU=""
+        fi
+    elif echo "$gpu_info" | grep -iq "AMD"; then
+        GPU="mesa lib32-mesa xf86-video-amdgpu vulkan-radeon lib32-vulkan-radeon"
+    elif echo "$gpu_info" | grep -iq "Intel"; then
+        GPU="mesa lib32-mesa xf86-video-intel vulkan-intel lib32-vulkan-intel"
+    else
+        echo "Keine passende Grafikkarte im System entdeckt!!!"
+        GPU=""
+    fi
 
     cat <<EOF
 Willkommen beim Pre-Installskript.
@@ -164,30 +187,6 @@ EOF
         fi
     else 
         echo "YAY ist bereits installiert."
-    fi
-
-    # Grafikkarte erkennen und den passenden Treiber installieren
-    gpu_info=$(lspci | grep -E "VGA|3D")
-    if echo "$gpu_info" | grep -iq "NVIDIA"; then
-        echo "Welche Nvidia Karte welchen Treiber braucht, kann man im Wiki oder bei Nvidia nachlesen."
-        echo "https://github.com/NVIDIA/open-gpu-kernel-modules?tab=readme-ov-file#compatible-gpus"
-        echo "https://wiki.archlinux.org/title/NVIDIA#Installation"
-        read -p "Brauchst du die Proprietary Open Source Treiber von NVIDIA? (j/n)" answer_nvidia_driver
-        if [ $answer_nvidia_driver == "j" || $answer_nvidia_driver == "y" ]; then
-            GPU="nvidia-open nvidia-utils lib32-nvidia-utils nvidia-settings"
-        elif [ $answer_nvidia_driver == "n" ]; then
-            GPU="nvidia nvidia-utils lib32-nvidia-utils nvidia-settings"
-        else
-            echo "Keine korrekte Antwort. Es wird kein NVIDIA Treiber installiert"
-            GPU=""
-        fi
-    elif echo "$gpu_info" | grep -iq "AMD"; then
-        GPU="mesa lib32-mesa xf86-video-amdgpu vulkan-radeon lib32-vulkan-radeon"
-    elif echo "$gpu_info" | grep -iq "Intel"; then
-        GPU="mesa lib32-mesa xf86-video-intel vulkan-intel lib32-vulkan-intel"
-    else
-        echo "Keine passende Grafikkarte im System entdeckt!!!"
-        GPU=""
     fi
 
     cat <<EOF
