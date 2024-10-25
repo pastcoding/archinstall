@@ -137,7 +137,7 @@ else
 
     DEFAULT="zsh zsh-autosuggestions zsh-completions zsh-syntax-highlighting xdg-user-dirs reflector pacman-contrib firefox zathura zathura-pdf-poppler poppler poppler-glib pipewire pipewire-alsa pipewire-jack pipewire-pulse pipewire-zeroconf wireplumber pamixer playerctl xdg-desktop-portal-gtk dosfstools gvfs gvfs-mtp gvfs-nfs gvfs-smb gvfs-wsdd nfs-utils bluez bluez-tools bluez-utils mpv"
     CONSOLE_APPS="tmux zoxide eza yazi ffmpegthumbnailer ffmpeg libheif vkd3d libva-mesa-driver btop bat aria2 duf tealdeer trash-cli unrar unzip zip yt-dlp dust ytfzf"
-    FONTS="noto-fonts-cjk noto-fonts-emoji ttf-iosevka-nerd ttf-nerd-fonts-symbols ttf-nerd-fonts-symbols-mono ttf-ubuntu-nerd ttf-noto-nerd ttf-meslo-nerd"
+    FONTS="noto-fonts-cjk noto-fonts-emoji ttf-iosevka-nerd ttf-nerd-fonts-symbols ttf-nerd-fonts-symbols-mono ttf-ubuntu-nerd ttf-noto-nerd ttf-meslo-nerd ttf-liberation"
     DEVELOPMENT="tree-sitter-cli nodejs npm python yarn ripgrep fd fzf diff-so-fancy lazygit glow luarocks qmk wget"
     WM_DEFAULT_X11="sxhkd kitty dunst picom feh polybar thunar thunar-archive-plugin thunar-volman tumbler arandr rofi unclutter xarchiver xclip xfce-polkit udiskie pavucontrol scrot mpv xorg-server"
     THEME_GTK="bibata-cursor-theme kora-icon-theme lxappearance-gtk3 orchis-theme"
@@ -232,15 +232,15 @@ EOF
     read -p "Welche davon soll installiert werden? (p/g/c/b/q)" desktop
 
     if [ $desktop == "p" ]; then
-        pacman -Syu --noconfirm --needed $DEFAULT $CONSOLE_APPS $FONTS $DEVELOPMENT $GPU plasma
+        pacman -Syu --noconfirm --needed $DEFAULT $CONSOLE_APPS $FONTS $DEVELOPMENT $GPU kitty plasma
         sudo -u $USER yay -S --noconfirm --needed $YAY_PKG
         systemctl enable sddm
     elif [ $desktop == "g" ]; then
-        pacman -Syu --noconfirm --needed $DEFAULT $CONSOLE_APPS $FONTS $DEVELOPMENT $GPU gnome
+        pacman -Syu --noconfirm --needed $DEFAULT $CONSOLE_APPS $FONTS $DEVELOPMENT $GPU kitty gnome
         sudo -u $USER yay -S --noconfirm --needed $YAY_PKG
         systemctl enable gdm
     elif [ $desktop == "c" ]; then
-        pacman -Syu --noconfirm --needed $DEFAULT $CONSOLE_APPS $FONTS $DEVELOPMENT $GPU gdm cinnamon
+        pacman -Syu --noconfirm --needed $DEFAULT $CONSOLE_APPS $FONTS $DEVELOPMENT $GPU gdm kitty cinnamon
         sudo -u $USER yay -S --noconfirm --needed $YAY_PKG
         systemctl enable gdm
     elif [ $desktop == "b" ]; then
