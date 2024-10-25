@@ -1,4 +1,25 @@
-#!/bin/sh
+#!/bin/bash
+
+cat <<EOF
+Willkommen bei meinem Installations Script.
+Ziel des Scriptes: Den Installations Prozess des Base Systems zu automatisieren.
+Im Base System kann das Script dann nochmals gestartet werden um ein GUI zu installieren.
+
+Bei der Installation werden einige Daten gebraucht, bitte Hilf mir da aus: 
+EOF
+read -p "Computername: " HOSTNAME
+read -p "Admin/Root Passwort: " ROOTPASSWD
+read -p "Benutzername: " USERNAME
+read -p "Benutzerpasswort: " USERPASSWD
+cat <<EOF
+
+Das Script speichert keine der Daten
+Installation startet...
+EOF
+for i in {3..1};do
+    echo "...$i..."
+    sleep 1
+done
 
 # Check ob wir uns im Live System befinden oder im Install System
 if cat /proc/cmdline | grep -q "archiso"; then
@@ -81,26 +102,30 @@ sed -i '127s/.//' /etc/locale.gen
 sed -i '171s/.//' /etc/locale.gen
 locale-gen
 echo "LANG=en_US.UTF-8" >/etc/locale.conf
-echo "olymp" >/etc/hostname
-echo "root:pwd4root" | chpasswd
+echo "$HOSTNAME" >/etc/hostname
+echo "root:$ROOTPASSWD" | chpasswd
 pacman -S --noconfirm grub efibootmgr networkmanager openssh
 grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
 grub-mkconfig -o /boot/grub/grub.cfg
 systemctl enable NetworkManager
 systemctl enable sshd
-useradd -mG wheel fenix
-echo fenix:pwd4root | chpasswd
+useradd -mG wheel $USERNAME
+echo fenix:$USERPASSWD | chpasswd
 cp /etc/sudoers /tmp/sudoers.tmp
 sed -i 's/^# \(%wheel ALL=(ALL:ALL) NOPASSWD: ALL\)/\1/' /tmp/sudoers.tmp
 visudo -cf /tmp/sudoers.tmp
 cp /tmp/sudoers.tmp /etc/sudoers
 EOF
-
+    # Installations Script noch in das HOME Dir des Users kopieren
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    TARGET_DIR="/mnt/home/$USERNAME"
+    cp -r "$SCRIPT_DIR" "$TARGET_DIR"
+    echo "Script wurde nach $TARGET_DIR kopiert."
     # Abschluss
     umount -R /mnt
     echo "Arch Linux Installation abgeschlossen! Bitte neu starten."
 else
-    # Wenn im Live System wird das Script verwendet um weitergehende Programme zu installieren
+    # Im Live System das Script verwenden um weitergehende Programme zu installieren
     # YAY (AUR Helper) Installation
     install_yay() {
             cd /tmp || exit
@@ -122,24 +147,34 @@ else
     # Grafikkarte erkennen und den passenden Treiber installieren
     gpu_info=$(lspci | grep -E "VGA|3D")
     if echo "$gpu_info" | grep -iq "NVIDIA"; then
-        echo "NVIDIA-Grafikkarte erkannt. Installiere NVIDIA-Treiber..."
-        # pacman -S --noconfirm nvidia nvidia-utils
+        GPU="sudo pacman -Syu nvidia"
     elif echo "$gpu_info" | grep -iq "AMD"; then
-        echo "AMD-Grafikkarte erkannt. Installiere AMDGPU-Treiber..."
-        # pacman -S --noconfirm xf86-video-amdgpu
+        GPU="sudo pacman -Syu amd"
     elif echo "$gpu_info" | grep -iq "Intel"; then
-        echo "Intel-Grafikkarte erkannt. Installiere Intel-Treiber..."
-        # pacman -S --noconfirm xf86-video-intel
+        GPU="sudo pacman -Syu intel"
     else
-        echo "Unbekannte Grafikkarte: $gpu_info"
+        GPU="sudo pacman -Syu"
     fi
 
+    cat <<EOF
+    Willkommen beim Pre-Installskript
+    Welches DE oder welcher WM soll installiert werden?
+    Dieses Script hat folgende Configs:
+    
+    plasma
+    gnome
+    cinnamon
+    bspwm
+    qtile
+    hyprland
 
-    echo "Willkommen beim Pre-Installskript"
-    echo "Welches DE oder welcher WM soll installiert werden?"
-    read -p "plasma, gnome, cinnamon, bspwm, qtile, hyprland: " desktop
+    EOF
+
+    read -p "Welche davon soll installiert werden? " desktop
+
     if [ $desktop == "plasma" ]; then
         echo "PLASMA"
+        $GPU
     elif [ $desktop == "gnome" ]; then
         echo "GNOME"
     elif [ $desktop == "cinnamon" ]; then
