@@ -123,7 +123,30 @@ EOF
 else
     # Im Live System das Script verwenden um weitergehende Programme zu installieren
     # Im Live System muss das Script mit root Rechten gestartet werden (Installieren von Apps und editieren von Systemdateien)
-
+	# Pfad zur pacman.conf
+	PACMAN_CONF="/etc/pacman.conf"
+	
+	# Sicherstellen, dass das Skript mit Root-Rechten ausgeführt wird (über Root-User oder sudo)
+	if [[ $EUID -ne 0 ]]; then
+	   echo "Dieses Skript muss mit sudo oder als Root-Benutzer ausgeführt werden."
+	   exit 1
+	fi
+	
+	# Überprüfen, ob das multilib-Repository bereits aktiviert ist
+	if grep -q "^\[multilib\]" "$PACMAN_CONF" && grep -A 1 "^\[multilib\]" "$PACMAN_CONF" | grep -q "^Include = /etc/pacman.d/mirrorlist"; then
+	    echo "Das multilib-Repository ist bereits aktiviert."
+	else
+	    echo "Aktiviere das multilib-Repository..."
+	
+	    # [multilib]-Abschnitt gezielt bearbeiten
+	    sudo sed -i '/#\[multilib\]/,/^#Include = \/etc\/pacman.d\/mirrorlist/ {s/^#//}' "$PACMAN_CONF"
+	    
+	    echo "Das multilib-Repository wurde aktiviert."
+	    
+	    # Pacman-Datenbank aktualisieren
+	    echo "Aktualisiere die Pacman-Datenbank..."
+	    sudo pacman -Syu
+	fi
 
     # Wir legen hier an dieser Stelle fest, welche Programme in den "Paketen" enthalten sind.
     # Es kann jederzeit auch angepasst werden hier im Script und eigene Programme hinzugefuegt oder andere entfernt werden
