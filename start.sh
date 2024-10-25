@@ -106,7 +106,7 @@ grub-mkconfig -o /boot/grub/grub.cfg
 systemctl enable NetworkManager
 systemctl enable sshd
 useradd -mG wheel $USERNAME
-echo fenix:$USERPASSWD | chpasswd
+echo $USERNAME:$USERPASSWD | chpasswd
 cp /etc/sudoers /tmp/sudoers.tmp
 sed -i 's/^# \(%wheel ALL=(ALL:ALL) NOPASSWD: ALL\)/\1/' /tmp/sudoers.tmp
 visudo -cf /tmp/sudoers.tmp
@@ -125,11 +125,13 @@ else
     # Wir legen hier an dieser Stelle fest, welche Programme in den "Paketen" enthalten sind.
     # Es kann jederzeit auch angepasst werden hier im Script und eigene Programme hinzugefuegt oder andere entfernt werden
     DEFAULT="tmux tree-sitter-cli nodejs npm python zoxide eza yazi btop bat ripgrep fd fzf zsh zsh-autosuggestions zsh-completions zsh-syntax-highlighting"
+    WM_DEFAULT="sxhkd kitty dunst picom feh polybar thunar"
+    GAMING="steam"
     PLASMA=""
     GNOME=""
     CINNAMON=""
-    BSPWM=""
-    QTILE=""
+    BSPWM="bspwm"
+    QTILE="qtile"
 
     cat <<EOF
 Willkommen beim Pre-Installskript.
@@ -213,8 +215,6 @@ EOF
         echo "BSPWM"
     elif [ $desktop == "qtile" ]; then
         echo "QTILE"
-    elif [ $desktop == "hyprland" ]; then
-        echo "HYPRLAND"
     else
         echo "Keine korrekte Auswahl getroffen, es wird nichts installiert"
     fi
