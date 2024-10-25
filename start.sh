@@ -133,13 +133,14 @@ else
     # Wir legen hier an dieser Stelle fest, welche Programme in den "Paketen" enthalten sind.
     # Es kann jederzeit auch angepasst werden hier im Script und eigene Programme hinzugefuegt oder andere entfernt werden
 
-    DEFAULT="zsh zsh-autosuggestions zsh-completions zsh-syntax-highlighting xdg-user-dirs reflector pacman-contrib firefox zathura zathura-pdf-poppler poppler poppler-glib mkinitcpio-firmware pipewire pipewire-alsa pipewire-jack pipewire-pulse pipewire-zeroconf wireplumber pamixer playerctl xdg-desktop-portal-gtk dosfstools gvfs gvfs-mtp gvfs-nfs gvfs-smb gvfs-wsdd nfs-utils bluez bluez-tools bluez-utils"
-    CONSOLE_APPS="tmux zoxide eza yazi ffmpegthumbnailer ffmpeg libheif vkd3d libva-mesa-driver btop bat aria2 duf tealdeer trash-cli ueberzugpp unrar unzip zip yt-dlp dust ytfzf"
+    DEFAULT="zsh zsh-autosuggestions zsh-completions zsh-syntax-highlighting xdg-user-dirs reflector pacman-contrib firefox zathura zathura-pdf-poppler poppler poppler-glib pipewire pipewire-alsa pipewire-jack pipewire-pulse pipewire-zeroconf wireplumber pamixer playerctl xdg-desktop-portal-gtk dosfstools gvfs gvfs-mtp gvfs-nfs gvfs-smb gvfs-wsdd nfs-utils bluez bluez-tools bluez-utils"
+    CONSOLE_APPS="tmux zoxide eza yazi ffmpegthumbnailer ffmpeg libheif vkd3d libva-mesa-driver btop bat aria2 duf tealdeer trash-cli unrar unzip zip yt-dlp dust ytfzf"
     FONTS="noto-fonts-cjk noto-fonts-emoji ttf-iosevka-nerd ttf-nerd-fonts-symbols ttf-nerd-fonts-symbols-mono ttf-ubuntu-nerd ttf-noto-nerd ttf-meslo-nerd"
     DEVELOPMENT="tree-sitter-cli nodejs npm python yarn ripgrep fd fzf diff-so-fancy lazygit glow luarocks qmk wget"
     WM_DEFAULT_X11="sxhkd kitty dunst picom feh polybar thunar thunar-archive-plugin thunar-volman tumbler arandr rofi unclutter xarchiver xclip xfce-polkit udiskie pavucontrol scrot mpv xorg-server"
     THEME_GTK="bibata-cursor-theme kora-icon-theme lxappearance-gtk3 orchis-theme"
     GAMING="steam mangohud goverlay mesa-utils vulkan-tools xpadneo-dkms protonup-qt prismlauncher jdk-openjdk piper"
+    YAY_PKG="mkinitcpio-firmware ueberzugpp"
 
     cat <<EOF
 Willkommen bei Pre Install Teil des Scripts
@@ -229,7 +230,8 @@ EOF
 read -p "Welche davon soll installiert werden? (p/g/c/b/q)" desktop
 
     if [ $desktop == "p" ]; then
-        yay -S $DEFAULT $CONSOLE_APPS $FONTS $DEVELOPMENT $GPU plasma
+        pacman -Syu $DEFAULT $CONSOLE_APPS $FONTS $DEVELOPMENT $GPU plasma
+        sudo $USER yay -S $YAY_PKG
     elif [ $desktop == "g" ]; then
         echo "GNOME"
     elif [ $desktop == "c" ]; then
