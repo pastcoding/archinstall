@@ -141,12 +141,10 @@ Es wird nun das multilib repo aktiviert und danach wird ein AUR Helper (yay) ins
 
 Die Installation wird dann mit der DE/WM Auswahl fortgesetzt.
 
-Lass uns beginnen ... oder brich innerhalb der kommend 5 Sekunden das Script mit CTRL+C ab!
+Um zu beginnen, ENTER
+Zum beenden, CTRL+C
 EOF
-    for i in {5..1};do
-        echo "...$i..."
-        sleep 1
-    done
+    read -r
     # Multilib aktivieren 
 	PACMAN_CONF="/etc/pacman.conf"
 	if grep -q "^\[multilib\]" "$PACMAN_CONF" && grep -A 1 "^\[multilib\]" "$PACMAN_CONF" | grep -q "^Include = /etc/pacman.d/mirrorlist"; then
@@ -161,7 +159,6 @@ EOF
 	    sudo pacman -Sy
 	fi
 
-    
     # YAY (AUR Helper) Installation
     install_yay() {
             cd /tmp
@@ -169,7 +166,6 @@ EOF
             cd yay
             makepkg -si --noconfirm
             echo "YAY wurde erfolgreich installiert."
-            sleep 1
     }
 
     if ! command -v yay &> /dev/null; then
@@ -222,9 +218,9 @@ qtile
 
 EOF
 
-    read -p "Welche davon soll installiert werden? " desktop
+read -p "Welche davon soll installiert werden? (plasma)" desktop
 
-    if [ $desktop == "plasma" ]; then
+    if [ $desktop == "plasma" || $desktop == "" ]; then
         echo "PLASMA"
         $GPU
     elif [ $desktop == "gnome" ]; then
