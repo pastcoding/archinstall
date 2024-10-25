@@ -1,5 +1,7 @@
 #!/bin/bash
 
+clear
+
 # Check ob wir uns im Live System befinden oder im Install System
 if cat /proc/cmdline | grep -q "archiso"; then
     cat <<EOF
@@ -131,9 +133,13 @@ else
     # Wir legen hier an dieser Stelle fest, welche Programme in den "Paketen" enthalten sind.
     # Es kann jederzeit auch angepasst werden hier im Script und eigene Programme hinzugefuegt oder andere entfernt werden
 
-    DEFAULT="tmux tree-sitter-cli nodejs npm python zoxide eza yazi btop bat ripgrep fd fzf zsh zsh-autosuggestions zsh-completions zsh-syntax-highlighting"
-    WM_DEFAULT="sxhkd kitty dunst picom feh polybar thunar"
-    GAMING="steam"
+    DEFAULT="zsh zsh-autosuggestions zsh-completions zsh-syntax-highlighting xdg-user-dirs reflector pacman-contrib firefox zathura zathura-pdf-poppler poppler poppler-glib mkinitcpio-firmware pipewire pipewire-alsa pipewire-jack pipewire-pulse pipewire-zeroconf wireplumber pamixer playerctl xdg-desktop-portal-gtk dosfstools gvfs gvfs-mtp gvfs-nfs gvfs-smb gvfs-wsdd nfs-utils bluez bluez-tools bluez-utils"
+    CONSOLE_APPS="tmux zoxide eza yazi ffmpegthumbnailer ffmpeg libheif vkd3d libva-mesa-driver btop bat aria2 duf tealdeer trash-cli ueberzugpp unrar unzip zip yt-dlp dust ytfzf"
+    FONTS="noto-fonts-cjk noto-fonts-emoji ttf-iosevka-nerd ttf-nerd-fonts-symbols ttf-nerd-fonts-symbols-mono ttf-ubuntu-nerd ttf-noto-nerd ttf-meslo-nerd"
+    DEVELOPMENT="tree-sitter-cli nodejs npm python yarn ripgrep fd fzf diff-so-fancy lazygit glow luarocks qmk wget"
+    WM_DEFAULT_X11="sxhkd kitty dunst picom feh polybar thunar thunar-archive-plugin thunar-volman tumbler arandr rofi unclutter xarchiver xclip xfce-polkit udiskie pavucontrol scrot mpv xorg-server"
+    THEME_GTK="bibata-cursor-theme kora-icon-theme lxappearance-gtk3 orchis-theme"
+    GAMING="steam mangohud goverlay mesa-utils vulkan-tools xpadneo-dkms protonup-qt prismlauncher jdk-openjdk piper"
 
     cat <<EOF
 Willkommen bei Pre Install Teil des Scripts
@@ -201,6 +207,8 @@ EOF
         GPU="mesa lib32-mesa xf86-video-amdgpu vulkan-radeon lib32-vulkan-radeon"
     elif echo "$gpu_info" | grep -iq "Intel"; then
         GPU="mesa lib32-mesa xf86-video-intel vulkan-intel lib32-vulkan-intel"
+    elif echo "$gpu_info" | grep -iq "VMware"; then
+        GPU="virtualbox-guest-utils"
     else
         echo "Keine passende Grafikkarte im System entdeckt!!!"
         GPU=""
@@ -210,26 +218,25 @@ EOF
 Welches DE oder welcher WM soll installiert werden?
 Dieses Script hat folgende Configs:
 
-plasma
-gnome
-cinnamon
-bspwm
-qtile
+(p)lasma
+(g)nome
+(c)innamon
+(b)spwm
+(q)tile
 
 EOF
 
-read -p "Welche davon soll installiert werden? (plasma)" desktop
+read -p "Welche davon soll installiert werden? (p/g/c/b/q)" desktop
 
-    if [ $desktop == "plasma" || $desktop == "" ]; then
-        echo "PLASMA"
-        $GPU
-    elif [ $desktop == "gnome" ]; then
+    if [ $desktop == "p" ]; then
+        yay -S $DEFAULT $CONSOLE_APPS $FONTS $DEVELOPMENT $GPU plasma
+    elif [ $desktop == "g" ]; then
         echo "GNOME"
-    elif [ $desktop == "cinnamon" ]; then
+    elif [ $desktop == "c" ]; then
         echo "CINNAMON"
-    elif [ $desktop == "bspwm" ]; then
+    elif [ $desktop == "b" ]; then
         echo "BSPWM"
-    elif [ $desktop == "qtile" ]; then
+    elif [ $desktop == "q" ]; then
         echo "QTILE"
     else
         echo "Keine korrekte Auswahl getroffen, es wird nichts installiert"
