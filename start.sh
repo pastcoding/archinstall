@@ -135,30 +135,32 @@ else
     WM_DEFAULT="sxhkd kitty dunst picom feh polybar thunar"
     GAMING="steam"
 
-    echo "Willkommen bei Pre Install Teil des Scripts"
-    # Multilib aktivieren 
-	PACMAN_CONF="/etc/pacman.conf"
-	if grep -q "^\[multilib\]" "$PACMAN_CONF" && grep -A 1 "^\[multilib\]" "$PACMAN_CONF" | grep -q "^Include = /etc/pacman.d/mirrorlist"; then
-	    echo "Das multilib-Repository ist bereits aktiviert."
-	else
-	    echo "Aktiviere das multilib-Repository..."
-	    sudo sed -i '/#\[multilib\]/,/^#Include = \/etc\/pacman.d\/mirrorlist/ {s/^#//}' "$PACMAN_CONF"
-	    echo "Das multilib-Repository wurde aktiviert."
-	    echo "Aktualisiere die Pacman-Datenbank..."
-	    sudo pacman -Syu
-	fi
-
     cat <<EOF
-Nachdem das Script nun die Vorbereitungen getroffen hat, gehen wir weiter zum AUR Helper.
+Willkommen bei Pre Install Teil des Scripts
+Es wird nun das multilib repo aktiviert und danach wird ein AUR Helper (yay) installiert.
 
-Die Installation wird danach mit der DE/WM Installation fortgesetzt.
+Die Installation wird dann mit der DE/WM Auswahl fortgesetzt.
 
-Lass uns beginnen ...
+Lass uns beginnen ... oder brich innerhalb der kommend 5 Sekunden das Script mit CTRL+C ab!
 EOF
     for i in {5..1};do
         echo "...$i..."
         sleep 1
     done
+    # Multilib aktivieren 
+	PACMAN_CONF="/etc/pacman.conf"
+	if grep -q "^\[multilib\]" "$PACMAN_CONF" && grep -A 1 "^\[multilib\]" "$PACMAN_CONF" | grep -q "^Include = /etc/pacman.d/mirrorlist"; then
+	    echo "Das multilib-Repository ist bereits aktiviert."
+        sleep 1
+	else
+	    echo "Aktiviere das multilib-Repository..."
+	    sudo sed -i '/#\[multilib\]/,/^#Include = \/etc\/pacman.d\/mirrorlist/ {s/^#//}' "$PACMAN_CONF"
+	    echo "Das multilib-Repository wurde aktiviert."
+	    echo "Aktualisiere die Pacman-Datenbank..."
+        sleep 1
+	    sudo pacman -Sy
+	fi
+
     
     # YAY (AUR Helper) Installation
     install_yay() {
@@ -167,6 +169,7 @@ EOF
             cd yay
             makepkg -si --noconfirm
             echo "YAY wurde erfolgreich installiert."
+            sleep 1
     }
 
     if ! command -v yay &> /dev/null; then
@@ -178,10 +181,13 @@ EOF
         fi
     else 
         echo "YAY ist bereits installiert."
+        sleep 1
     fi
 
     # Grafikkarte erkennen und den passenden Treiber installieren
     gpu_info=$(lspci | grep -E "VGA|3D")
+    echo "Grafikkarten Check"
+    sleep 1
     if echo "$gpu_info" | grep -iq "NVIDIA"; then
         echo "Welche Nvidia Karte welchen Treiber braucht, kann man im Wiki oder bei Nvidia nachlesen."
         echo "https://github.com/NVIDIA/open-gpu-kernel-modules?tab=readme-ov-file#compatible-gpus"
