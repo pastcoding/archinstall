@@ -5,25 +5,21 @@ Willkommen bei meinem Installations Script.
 Ziel des Scriptes: Den Installations Prozess des Base Systems zu automatisieren.
 Im Base System kann das Script dann nochmals gestartet werden um ein GUI zu installieren.
 
-Bei der Installation werden einige Daten gebraucht, bitte Hilf mir da aus: 
 EOF
-read -p "Computername: " HOSTNAME
-read -p "Admin/Root Passwort: " ROOTPASSWD
-read -p "Benutzername: " USERNAME
-read -p "Benutzerpasswort: " USERPASSWD
-cat <<EOF
-
-Das Script speichert keine der Daten
-Installation startet...
-EOF
-for i in {3..1};do
-    echo "...$i..."
-    sleep 1
-done
-
 # Check ob wir uns im Live System befinden oder im Install System
 if cat /proc/cmdline | grep -q "archiso"; then
     # Installations Prozess beginnen
+    echo "Bei der Installation werden einige Daten gebraucht, bitte Hilf mir da aus :)"
+    echo "Das Script speichert keine Daten/Passwoerter!!!"
+    read -p "Computername: " HOSTNAME
+    read -p "Admin/Root Passwort: " ROOTPASSWD
+    read -p "Benutzername: " USERNAME
+    read -p "Benutzerpasswort: " USERPASSWD
+    echo "Installation startet..."
+    for i in {3..1};do
+        echo "...$i..."
+        sleep 1
+    done
     # NetworkTime aktivieren
     timedatectl set-ntp true
 
@@ -168,7 +164,7 @@ else
     qtile
     hyprland
 
-    EOF
+EOF
 
     read -p "Welche davon soll installiert werden? " desktop
 
