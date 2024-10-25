@@ -121,7 +121,8 @@ EOF
     echo "Script wurde nach $TARGET_DIR kopiert."
     # Abschluss
     umount -R /mnt
-    echo "Arch Linux Installation abgeschlossen! Bitte neu starten."
+    read -r "Arch Linux Installation abgeschlossen! Bitte neu starten mit ENTER"
+    systemctl reboot
 else
     # Im Live System das Script verwenden um weitergehende Programme zu installieren
     # Im Live System muss das Script mit root Rechten gestartet werden (Installieren von Apps und editieren von Systemdateien)
@@ -227,20 +228,42 @@ Dieses Script hat folgende Configs:
 
 EOF
 
-read -p "Welche davon soll installiert werden? (p/g/c/b/q)" desktop
+    read -p "Welche davon soll installiert werden? (p/g/c/b/q)" desktop
 
     if [ $desktop == "p" ]; then
         pacman -Syu $DEFAULT $CONSOLE_APPS $FONTS $DEVELOPMENT $GPU plasma
         sudo $USER yay -S $YAY_PKG
+        systemctl enable sddm
     elif [ $desktop == "g" ]; then
-        echo "GNOME"
+        pacman -Syu $DEFAULT $CONSOLE_APPS $FONTS $DEVELOPMENT $GPU gnome
+        sudo $USER yay -S $YAY_PKG
+        systemctl enable gdm
     elif [ $desktop == "c" ]; then
-        echo "CINNAMON"
+        pacman -Syu $DEFAULT $CONSOLE_APPS $FONTS $DEVELOPMENT $GPU gdm cinnamon
+        sudo $USER yay -S $YAY_PKG
+        systemctl enable gdm
     elif [ $desktop == "b" ]; then
-        echo "BSPWM"
+        pacman -Syu $DEFAULT $CONSOLE_APPS $FONTS $DEVELOPMENT $GPU $WM_DEFAULT_X11 sddm bspwm
+        sudo $USER yay -S $YAY_PKG
+        systemctl enable sddm
     elif [ $desktop == "q" ]; then
-        echo "QTILE"
+        pacman -Syu $DEFAULT $CONSOLE_APPS $FONTS $DEVELOPMENT $GPU $WM_DEFAULT_X11 sddm qtile
+        sudo $USER yay -S $YAY_PKG
+        systemctl enable sddm
     else
         echo "Keine korrekte Auswahl getroffen, es wird nichts installiert"
+        exit 1
     fi
+    echo "Installation des GUI abgeschlossen"
+    sleep 1
+    #Abfrage ob das System Bluetooth hat und ob es aktiviert werden soll
+    read -p "Hat das System Bluetooth und soll es aktiviert werden? (j/n) " answer_bluetooth
+    if [ $answer_bluetooth == "j" || $answer_bluetooth == "y" ]; then
+        systemctl enable bluetooth
+    fi
+
+    echo "Installation abgeschlossen"
+    read -r "Neustart erforderlich. Bitte ENTER druecken"
+    systemctl reboot
+
 fi
