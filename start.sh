@@ -130,11 +130,12 @@ else
 	   echo "Dieses Skript muss mit sudo oder als Root-Benutzer ausgeführt werden."
 	   exit 1
 	fi
-
+    # Da wir spaeter YAY verwenden, brauchen wir auch den normalen Usernamen (yay mit root wird nicht empfohlen)
+    USER="${SUDO_USER:-$(whoami)}"
     # Wir legen hier an dieser Stelle fest, welche Programme in den "Paketen" enthalten sind.
     # Es kann jederzeit auch angepasst werden hier im Script und eigene Programme hinzugefuegt oder andere entfernt werden
 
-    DEFAULT="zsh zsh-autosuggestions zsh-completions zsh-syntax-highlighting xdg-user-dirs reflector pacman-contrib firefox zathura zathura-pdf-poppler poppler poppler-glib pipewire pipewire-alsa pipewire-jack pipewire-pulse pipewire-zeroconf wireplumber pamixer playerctl xdg-desktop-portal-gtk dosfstools gvfs gvfs-mtp gvfs-nfs gvfs-smb gvfs-wsdd nfs-utils bluez bluez-tools bluez-utils"
+    DEFAULT="zsh zsh-autosuggestions zsh-completions zsh-syntax-highlighting xdg-user-dirs reflector pacman-contrib firefox zathura zathura-pdf-poppler poppler poppler-glib pipewire pipewire-alsa pipewire-jack pipewire-pulse pipewire-zeroconf wireplumber pamixer playerctl xdg-desktop-portal-gtk dosfstools gvfs gvfs-mtp gvfs-nfs gvfs-smb gvfs-wsdd nfs-utils bluez bluez-tools bluez-utils mpv"
     CONSOLE_APPS="tmux zoxide eza yazi ffmpegthumbnailer ffmpeg libheif vkd3d libva-mesa-driver btop bat aria2 duf tealdeer trash-cli unrar unzip zip yt-dlp dust ytfzf"
     FONTS="noto-fonts-cjk noto-fonts-emoji ttf-iosevka-nerd ttf-nerd-fonts-symbols ttf-nerd-fonts-symbols-mono ttf-ubuntu-nerd ttf-noto-nerd ttf-meslo-nerd"
     DEVELOPMENT="tree-sitter-cli nodejs npm python yarn ripgrep fd fzf diff-so-fancy lazygit glow luarocks qmk wget"
@@ -231,28 +232,30 @@ EOF
     read -p "Welche davon soll installiert werden? (p/g/c/b/q)" desktop
 
     if [ $desktop == "p" ]; then
-        pacman -Syu $DEFAULT $CONSOLE_APPS $FONTS $DEVELOPMENT $GPU plasma
-        sudo $USER yay -S $YAY_PKG
+        pacman -Syu --noconfirm --needed $DEFAULT $CONSOLE_APPS $FONTS $DEVELOPMENT $GPU plasma
+        sudo -u $USER yay -S --noconfirm --needed $YAY_PKG
         systemctl enable sddm
     elif [ $desktop == "g" ]; then
-        pacman -Syu $DEFAULT $CONSOLE_APPS $FONTS $DEVELOPMENT $GPU gnome
-        sudo $USER yay -S $YAY_PKG
+        pacman -Syu --noconfirm --needed $DEFAULT $CONSOLE_APPS $FONTS $DEVELOPMENT $GPU gnome
+        sudo -u $USER yay -S --noconfirm --needed $YAY_PKG
         systemctl enable gdm
     elif [ $desktop == "c" ]; then
-        pacman -Syu $DEFAULT $CONSOLE_APPS $FONTS $DEVELOPMENT $GPU gdm cinnamon
-        sudo $USER yay -S $YAY_PKG
+        pacman -Syu --noconfirm --needed $DEFAULT $CONSOLE_APPS $FONTS $DEVELOPMENT $GPU gdm cinnamon
+        sudo -u $USER yay -S --noconfirm --needed $YAY_PKG
         systemctl enable gdm
     elif [ $desktop == "b" ]; then
-        pacman -Syu $DEFAULT $CONSOLE_APPS $FONTS $DEVELOPMENT $GPU $WM_DEFAULT_X11 sddm bspwm
-        sudo $USER yay -S $YAY_PKG
+        pacman -Syu --noconfirm --needed $DEFAULT $CONSOLE_APPS $FONTS $DEVELOPMENT $GPU $WM_DEFAULT_X11 sddm bspwm
+        sudo -u $USER yay -S --noconfirm --needed $YAY_PKG
         systemctl enable sddm
     elif [ $desktop == "q" ]; then
-        pacman -Syu $DEFAULT $CONSOLE_APPS $FONTS $DEVELOPMENT $GPU $WM_DEFAULT_X11 sddm qtile
-        sudo $USER yay -S $YAY_PKG
+        pacman -Syu --noconfirm --needed $DEFAULT $CONSOLE_APPS $FONTS $DEVELOPMENT $GPU $WM_DEFAULT_X11 sddm qtile
+        sudo -u $USER yay -S --noconfirm --needed $YAY_PKG
         systemctl enable sddm
     else
         echo "Keine korrekte Auswahl getroffen, es wird nichts installiert"
-        exit 1
+        echo "Script wird beendet, da es nichts mehr zu tun gibt"
+        sleep 1
+        exit 0
     fi
     echo "Installation des GUI abgeschlossen"
     sleep 1
