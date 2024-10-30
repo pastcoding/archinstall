@@ -134,15 +134,9 @@ if [[ $(cat env) == "install" ]];then
     genfstab -U /mnt >>/mnt/etc/fstab
     copy_script /mnt
     arch-chroot /mnt <<EOF
-bash archinstall/prebase.sh
+bash archinstall/chroot.sh
 EOF
-
-copy_script "$/mnt/home/$(cat /mnt/archinstall/user)"
 rm -rf /mnt/archinstall
-
-if [[ $(cat swap) == "true" ]]; then
-    swapoff "${INSTALL_DISK}2"
-fi
 umount -R /mnt
 fi
 
