@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# OLD VERSION OF THE SCRIPT
+# HERE FOR REFRENCE
+# DONT USE IT
+
 clear
 
 # Check ob wir uns im Live System befinden oder im Install System
