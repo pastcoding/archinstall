@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 # Dieses Script dient dazu, sowohl ein Base System zu installieren,
 # als auch im spateren Live System ein DE oder einen WM zu installieren.
 # Selbstverstaendlich uebernimmt das Script auch die Installation von einigen, 
@@ -15,9 +14,6 @@
 
 # Ein paar Variablen werden in Files geschrieben und anschliessend wieder geloescht.
 # Grund, so kann ich ein und die selbe Varaible in den unterschiedlichen Teilen verwenden.
-
-# Entfernen moeglicher alter Daten von anderen Installationen
-rm env swap user
 
 # Pre-Base Install Varaiblen
 CPU_VENDOR=""
@@ -138,6 +134,8 @@ bash archinstall/chroot.sh
 EOF
 rm -rf /mnt/archinstall
 umount -R /mnt
+elif [[ $(cat env) == "live" ]]; then
+    bash prebase.sh
 fi
 
 dialog --msgbox "Installaton abgeschlossen\n
