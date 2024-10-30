@@ -110,9 +110,9 @@ elif [ $desktop == "g" ]; then
     yay -S --noconfirm --needed $YAY_PKG
     sudo systemctl enable gdm
 elif [ $desktop == "c" ]; then
-    sudo pacman -Syu --noconfirm --needed $DEFAULT $CONSOLE_APPS $FONTS $DEVELOPMENT $GPU gdm cinnamon
+    sudo pacman -Syu --noconfirm --needed $DEFAULT $CONSOLE_APPS $FONTS $DEVELOPMENT $GPU sddm cinnamon
     yay -S --noconfirm --needed $YAY_PKG
-    sudo systemctl enable gdm
+    sudo systemctl enable sddm
 elif [ $desktop == "b" ]; then
     sudo pacman -Syu --noconfirm --needed $DEFAULT $CONSOLE_APPS $FONTS $DEVELOPMENT $GPU $WM_DEFAULT_X11 sddm bspwm
     yay -S --noconfirm --needed $YAY_PKG
@@ -135,7 +135,7 @@ if [ $answer_bluetooth == "j" || $answer_bluetooth == "y" ]; then
     sudo systemctl enable bluetooth
 fi
 
+rm env
 echo "Installation abgeschlossen"
 read -r "Neustart erforderlich. Bitte ENTER druecken"
-rm env
 systemctl reboot
