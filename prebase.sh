@@ -1,13 +1,7 @@
 #!/bin/bash
 
 # Im Live System das Script verwenden um weitergehende Programme zu installieren
-# Im Live System muss das Script mit root Rechten gestartet werden (Installieren von Apps und editieren von Systemdateien)
-if [[ $EUID -ne 0 ]]; then
-    echo "Dieses Skript muss mit sudo oder als Root-Benutzer ausgeführt werden."
-    exit 1
-fi
-# Da wir spaeter YAY verwenden, brauchen wir auch den normalen Usernamen (yay mit root wird nicht empfohlen)
-USER="${SUDO_USER:-$(whoami)}"
+USER="$(whoami)"
 # Wir legen hier an dieser Stelle fest, welche Programme in den "Paketen" enthalten sind.
 # Es kann jederzeit auch angepasst werden hier im Script und eigene Programme hinzugefuegt oder andere entfernt werden
 
@@ -57,7 +51,7 @@ if ! command -v yay &> /dev/null; then
     if pacman -Q base-devel git &> /dev/null; then
         install_yay
     else
-        pacman -Syu base-devel git
+        sudo pacman -Syu base-devel git
         install_yay
     fi
 else 
@@ -108,25 +102,25 @@ EOF
 read -p "Welche davon soll installiert werden? (p/g/c/b/q)" desktop
 
 if [ $desktop == "p" ]; then
-    pacman -Syu --noconfirm --needed $DEFAULT $CONSOLE_APPS $FONTS $DEVELOPMENT $GPU plasma
-    sudo -u $USER yay -S --noconfirm --needed $YAY_PKG
-    systemctl enable sddm
+    sudo pacman -Syu --noconfirm --needed $DEFAULT $CONSOLE_APPS $FONTS $DEVELOPMENT $GPU plasma
+    yay -S --noconfirm --needed $YAY_PKG
+    sudo systemctl enable sddm
 elif [ $desktop == "g" ]; then
-    pacman -Syu --noconfirm --needed $DEFAULT $CONSOLE_APPS $FONTS $DEVELOPMENT $GPU gnome
-    sudo -u $USER yay -S --noconfirm --needed $YAY_PKG
-    systemctl enable gdm
+    sudo pacman -Syu --noconfirm --needed $DEFAULT $CONSOLE_APPS $FONTS $DEVELOPMENT $GPU gnome
+    yay -S --noconfirm --needed $YAY_PKG
+    sudo systemctl enable gdm
 elif [ $desktop == "c" ]; then
-    pacman -Syu --noconfirm --needed $DEFAULT $CONSOLE_APPS $FONTS $DEVELOPMENT $GPU gdm cinnamon
-    sudo -u $USER yay -S --noconfirm --needed $YAY_PKG
-    systemctl enable gdm
+    sudo pacman -Syu --noconfirm --needed $DEFAULT $CONSOLE_APPS $FONTS $DEVELOPMENT $GPU gdm cinnamon
+    yay -S --noconfirm --needed $YAY_PKG
+    sudo systemctl enable gdm
 elif [ $desktop == "b" ]; then
-    pacman -Syu --noconfirm --needed $DEFAULT $CONSOLE_APPS $FONTS $DEVELOPMENT $GPU $WM_DEFAULT_X11 sddm bspwm
-    sudo -u $USER yay -S --noconfirm --needed $YAY_PKG
-    systemctl enable sddm
+    sudo pacman -Syu --noconfirm --needed $DEFAULT $CONSOLE_APPS $FONTS $DEVELOPMENT $GPU $WM_DEFAULT_X11 sddm bspwm
+    yay -S --noconfirm --needed $YAY_PKG
+    sudo systemctl enable sddm
 elif [ $desktop == "q" ]; then
-    pacman -Syu --noconfirm --needed $DEFAULT $CONSOLE_APPS $FONTS $DEVELOPMENT $GPU $WM_DEFAULT_X11 sddm qtile
-    sudo -u $USER yay -S --noconfirm --needed $YAY_PKG
-    systemctl enable sddm
+    sudo pacman -Syu --noconfirm --needed $DEFAULT $CONSOLE_APPS $FONTS $DEVELOPMENT $GPU $WM_DEFAULT_X11 sddm qtile
+    yay -S --noconfirm --needed $YAY_PKG
+    sudo systemctl enable sddm
 else
     echo "Keine korrekte Auswahl getroffen, es wird nichts installiert"
     echo "Script wird beendet, da es nichts mehr zu tun gibt"
@@ -138,11 +132,10 @@ sleep 1
 #Abfrage ob das System Bluetooth hat und ob es aktiviert werden soll
 read -p "Hat das System Bluetooth und soll es aktiviert werden? (j/n) " answer_bluetooth
 if [ $answer_bluetooth == "j" || $answer_bluetooth == "y" ]; then
-    systemctl enable bluetooth
+    sudo systemctl enable bluetooth
 fi
 
 echo "Installation abgeschlossen"
 read -r "Neustart erforderlich. Bitte ENTER druecken"
 rm env
 systemctl reboot
-
