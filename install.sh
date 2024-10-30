@@ -79,10 +79,10 @@ drive_partition(){
 drive_format(){
     mkfs.fat -F32 "${INSTALL_DISK}1"
     if [[ "$SWAP" == "true" ]]; then
-        mkswap "${INSTALL_DISK}2" # Swap-Partition formatieren
-        mkfs.ext4 "${INSTALL_DISK}3"
+        mkswap -q "${INSTALL_DISK}2" # Swap-Partition formatieren
+        mkfs.ext4 -F "${INSTALL_DISK}3"
     else
-        mkfs.ext4 "${INSTALL_DISK}2"
+        mkfs.ext4 -F "${INSTALL_DISK}2"
     fi
 }
 # Einbinden der Partitionen
@@ -125,4 +125,7 @@ if [[ $(cat env) == "install" ]];then
             nvme_check
             drive_format
             drive_mount
+    pacstrap /mnt base base-devel linux linux-firmware linux-headers neovim git dialog exfatprogs e2fsprogs man-db $UCODE
+    genfstab -U /mnt >>/mnt/etc/fstab
+
 fi
