@@ -95,6 +95,14 @@ copy_script(){    # Installations Script noch in das HOME Dir des Users kopieren
 ### Hauptscript beginnt hier###
 ###############################
 get_session_type
+dialog --title "Sicher?" --yesno \
+    "Sollen wir mit der Installation beginnen?\n\n
+    Etwaige Daten auf der gewaehleten Festplatte werden geloescht!!!\n\n" 5 60
+    response=$?
+    case $response in
+        0) ;;
+        1) exit 0 ;;
+    esac
 if [[ $(cat env) == "install" ]];then
     timedatectl set-ntp true
     pacman -S --noconfirm dialog
@@ -122,6 +130,6 @@ if [[ $(cat env) == "install" ]];then
     genfstab -U /mnt >>/mnt/etc/fstab
     copy_script /mnt
     arch-chroot /mnt <<EOF
-    bash archinstall/prebase.sh
+bash archinstall/prebase.sh
 EOF
 fi
