@@ -19,11 +19,8 @@
 CPU_VENDOR=""
 HARDDRIVES=""
 INSTALL_DISK=""
-SWAP=""
 RAM_SIZE=""
-SWAP_SIZE=""
 
-# Check ob wir uns im Installations ISO befinden, oder im Live System
 get_session_type(){
     if cat /proc/cmdline | grep -q "archiso"; then
         echo "install" > env
@@ -32,7 +29,6 @@ get_session_type(){
     fi
 }
 
-# Check welche CPU verbaut ist im System
 get_cpu_vendor(){
     VENDOR=$(lscpu | grep "Vendor ID" | awk '{print $3}')
     if [ "$VENDOR" == "GenuineIntel" ]; then
@@ -42,52 +38,44 @@ get_cpu_vendor(){
     fi
 }
 
-# Auslesen saemtlicher Festplatten im System (Return ist ein Array)
 get_disks(){
-    # mapfile -t HARDDRIVES < <(lsblk -d | awk '{print "/dev/" $1 " " $4}' | grep -E 'sd|hd|vd|nvme|mmcblk')
     HARDDRIVES=($(lsblk -d | awk '{print "/dev/" $1 " " $4 " on"}' | grep -E 'sd|hd|vd|nvme|mmcblk'))
 }
 
-# NVME Check
 nvme_check(){
     echo "$INSTALL_DISK" | grep -E 'nvme' &> /dev/null && INSTALL_DISK="${INSTALL_DISK}p"
 }
 
-# Funktion zum Erkennen der RAM-Größe und Festlegen der Swap-Größe
 get_ram_size() {
     RAM_SIZE=$(free --giga | awk '/Mem:/ {print $2}')
     if [ "$RAM_SIZE" -eq 0 ]; then
         RAM_SIZE=$(free --mega | awk '/Mem:/ {print $2}')
         RAM_SIZE=$(echo "($RAM_SIZE / 1024) + 1" | bc) # Auf volle GB runden
     fi
-    SWAP_SIZE=${RAM_SIZE}
 }
 
-# Funktion um die Festplatte zu partitionieren
 drive_partition(){
     parted -s "$INSTALL_DISK" mklabel gpt
     parted -s "$INSTALL_DISK" mkpart primary fat32 1MiB 1GiB
     parted -s "$INSTALL_DISK" set 1 esp on
-    if [[ "$SWAP" == "true" ]]; then
+    if [[ $(cat swap) == "true" ]]; then
         parted -s "$INSTALL_DISK" mkpart primary linux-swap 1GiB $((1 + RAM_SIZE))GiB
         parted -s "$INSTALL_DISK" mkpart primary ext4 $((1 + RAM_SIZE))GiB 100%
     else
         parted -s "$INSTALL_DISK" mkpart primary ext4 1GiB 100%
     fi
 }
-# Formatieren der Partitionen
 drive_format(){
     mkfs.fat -F32 "${INSTALL_DISK}1"
-    if [[ "$SWAP" == "true" ]]; then
+    if [[ $(cat swap) == "true" ]]; then
         mkswap -q "${INSTALL_DISK}2" # Swap-Partition formatieren
         mkfs.ext4 -F "${INSTALL_DISK}3"
     else
         mkfs.ext4 -F "${INSTALL_DISK}2"
     fi
 }
-# Einbinden der Partitionen
 drive_mount(){
-    if [[ "$SWAP" == "true" ]]; then
+    if [[ $(cat swap) == "true" ]]; then
         mount "${INSTALL_DISK}3" /mnt
         mount --mkdir "${INSTALL_DISK}1" /mnt/boot
         swapon "${INSTALL_DISK}2" # Swap aktivieren
@@ -96,6 +84,13 @@ drive_mount(){
         mount --mkdir "${INSTALL_DISK}1" /mnt/boot
     fi
 }
+copy_script(){    # Installations Script noch in das HOME Dir des Users kopieren
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    TARGET_DIR="$1"
+    cp -r "$SCRIPT_DIR" "$TARGET_DIR"
+    echo "Script wurde nach $TARGET_DIR kopiert."
+}
+
 ###############################
 ### Hauptscript beginnt hier###
 ###############################
@@ -114,18 +109,19 @@ if [[ $(cat env) == "install" ]];then
         "Soll eine SWAP Partition eingerichtet werden?\n\n" 5 60
             response=$?
             case $response in
-                0) SWAP="true"
+                0) echo "true" > swap
                     get_ram_size
-                    drive_partition
-                    echo "Ja" ;;
-                1) SWAP="false"
-                    drive_partition
-                    echo "Nein" ;;
+                    drive_partition ;;
+                1) echo "false" > swap
+                    drive_partition ;;
             esac
             nvme_check
             drive_format
             drive_mount
     pacstrap /mnt base base-devel linux linux-firmware linux-headers neovim git dialog exfatprogs e2fsprogs man-db $UCODE
     genfstab -U /mnt >>/mnt/etc/fstab
-
+    copy_script /mnt
+    arch-chroot /mnt <<EOF
+    bash archinstall/prebase.sh
+EOF
 fi
