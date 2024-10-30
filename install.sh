@@ -18,6 +18,7 @@
 # Pre-Base Install Varaiblen
 CPU_VENDOR=""
 HARDDRIVES=""
+INSTALL_DISK=""
 SWAP=""
 RAM_SIZE=""
 SWAP_SIZE=""
@@ -47,6 +48,10 @@ get_disks(){
     HARDDRIVES=($(lsblk -d | awk '{print "/dev/" $1 " " $4 " on"}' | grep -E 'sd|hd|vd|nvme|mmcblk'))
 }
 
+# NVME Check
+nvme_check(){
+    echo "$INSTALL_DISK" | grep -E 'nvme' &> /dev/null && INSTALL_DISK="${INSTALL_DISK}p"
+}
 
 # Funktion zum Erkennen der RAM-Größe und Festlegen der Swap-Größe
 get_ram_size() {
@@ -55,30 +60,69 @@ get_ram_size() {
         RAM_SIZE=$(free --mega | awk '/Mem:/ {print $2}')
         RAM_SIZE=$(echo "($RAM_SIZE / 1024) + 1" | bc) # Auf volle GB runden
     fi
-    echo "Erkannte RAM-Größe: ${RAM_SIZE}G"
     SWAP_SIZE=${RAM_SIZE}
-    echo "Swap-Größe wird auf ${SWAP_SIZE}G gesetzt."
 }
 
+# Funktion um die Festplatte zu partitionieren
+drive_partition(){
+    parted -s "$INSTALL_DISK" mklabel gpt
+    parted -s "$INSTALL_DISK" mkpart primary fat32 1MiB 1GiB
+    parted -s "$INSTALL_DISK" set 1 esp on
+    if [[ "$SWAP" == "true" ]]; then
+        parted -s "$INSTALL_DISK" mkpart primary linux-swap 1GiB $((1 + RAM_SIZE))GiB
+        parted -s "$INSTALL_DISK" mkpart primary ext4 $((1 + RAM_SIZE))GiB 100%
+    else
+        parted -s "$INSTALL_DISK" mkpart primary ext4 1GiB 100%
+    fi
+}
+# Formatieren der Partitionen
+drive_format(){
+    mkfs.fat -F32 "${INSTALL_DISK}1"
+    if [[ "$SWAP" == "true" ]]; then
+        mkswap "${INSTALL_DISK}2" # Swap-Partition formatieren
+        mkfs.ext4 "${INSTALL_DISK}3"
+    else
+        mkfs.ext4 "${INSTALL_DISK}2"
+    fi
+}
+# Einbinden der Partitionen
+drive_mount(){
+    if [[ "$SWAP" == "true" ]]; then
+        mount "${INSTALL_DISK}3" /mnt
+        mount --mkdir "${INSTALL_DISK}1" /mnt/boot
+        swapon "${INSTALL_DISK}2" # Swap aktivieren
+    else
+        mount "${INSTALL_DISK}2" /mnt
+        mount --mkdir "${INSTALL_DISK}1" /mnt/boot
+    fi
+}
 ###############################
 ### Hauptscript beginnt hier###
 ###############################
 get_session_type
-if [[ $(cat env) == "live" ]];then
-    echo "timedatectl set-ntp true"
+if [[ $(cat env) == "install" ]];then
+    timedatectl set-ntp true
+    pacman -S --noconfirm dialog
     get_cpu_vendor
     get_disks
     INSTALL_DISK=$(dialog --title "Installations Ziel aussuchen" --no-cancel --radiolist \
         "Auf welche Festplatte soll installiert werden? \n\n\
         Auswahl mit SPACE, bestaetigen mit ENTER. \n\n\
         ACHTUNG: Es wird ALLES GELOESCHT auf der Platte!" 15 60 4 "${HARDDRIVES[@]}" 3>&1 1>&2 2>&3)
-    
+
     dialog --title "Mit SWAP Partition?" --yesno \
         "Soll eine SWAP Partition eingerichtet werden?\n\n" 5 60
-    response=$?
-    case $response in
-        0) get_ram_size
-            echo "Ja" ;;
-        1) echo "Nein" ;;
-    esac
+            response=$?
+            case $response in
+                0) SWAP="true"
+                    get_ram_size
+                    drive_partition
+                    echo "Ja" ;;
+                1) SWAP="false"
+                    drive_partition
+                    echo "Nein" ;;
+            esac
+            nvme_check
+            drive_format
+            drive_mount
 fi
