@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 # Dieses Script dient dazu, sowohl ein Base System zu installieren,
 # als auch im spateren Live System ein DE oder einen WM zu installieren.
 # Selbstverstaendlich uebernimmt das Script auch die Installation von einigen, 
@@ -14,6 +15,9 @@
 
 # Ein paar Variablen werden in Files geschrieben und anschliessend wieder geloescht.
 # Grund, so kann ich ein und die selbe Varaible in den unterschiedlichen Teilen verwenden.
+
+# Entfernen moeglicher alter Daten von anderen Installationen
+rm env swap user
 
 # Pre-Base Install Varaiblen
 CPU_VENDOR=""
@@ -97,7 +101,7 @@ copy_script(){    # Installations Script noch in das HOME Dir des Users kopieren
 get_session_type
 dialog --title "Sicher?" --yesno \
     "Sollen wir mit der Installation beginnen?\n\n
-    Etwaige Daten auf der gewaehleten Festplatte werden geloescht!!!\n\n" 5 60
+    Etwaige Daten auf der gewaehleten Festplatte werden geloescht!!!\n\n" 10 60
     response=$?
     case $response in
         0) ;;
@@ -114,22 +118,33 @@ if [[ $(cat env) == "install" ]];then
         ACHTUNG: Es wird ALLES GELOESCHT auf der Platte!" 15 60 4 "${HARDDRIVES[@]}" 3>&1 1>&2 2>&3)
 
     dialog --title "Mit SWAP Partition?" --yesno \
-        "Soll eine SWAP Partition eingerichtet werden?\n\n" 5 60
-            response=$?
-            case $response in
-                0) echo "true" > swap
-                    get_ram_size
-                    drive_partition ;;
-                1) echo "false" > swap
-                    drive_partition ;;
-            esac
-            nvme_check
-            drive_format
-            drive_mount
+        "Soll eine SWAP Partition eingerichtet werden?\n\n" 10 60
+                response=$?
+                case $response in
+                    0) echo "true" > swap
+                        get_ram_size
+                        drive_partition ;;
+                    1) echo "false" > swap
+                        drive_partition ;;
+                esac
+    nvme_check
+    drive_format
+    drive_mount
     pacstrap /mnt base base-devel linux linux-firmware linux-headers neovim git dialog exfatprogs e2fsprogs man-db $UCODE
     genfstab -U /mnt >>/mnt/etc/fstab
     copy_script /mnt
     arch-chroot /mnt <<EOF
 bash archinstall/prebase.sh
 EOF
+
+copy_script "$/mnt/home/$(cat /mnt/archinstall/user)"
+rm -rf /mnt/archinstall
+
+if [[ $(cat swap) == "true" ]]; then
+    swapoff "${INSTALL_DISK}2"
 fi
+umount -R /mnt
+fi
+
+dialog --msgbox "Installaton abgeschlossen\n
+Bitte neustarten :)" 10 60
