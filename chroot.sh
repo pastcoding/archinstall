@@ -23,15 +23,28 @@ config_user() {
     echo "$user:$pass1" | chpasswd
 }
 
-echo "Willkommen im neuen System"
+timezones=$(timedatectl list-timezones)
+while [ -z $filtered_timezones ]; do
+    search_term=$(dialog --inputbox "Geben Sie einen Suchbegriff für die Zeitzone ein (z.B. 'Europe' oder 'Berlin'):" 10 60 3>&1 1>&2 2>&3 )
+    filtered_timezones=$(echo "$timezones" | grep -i "$search_term")
+    if [ -z "$filtered_timezones" ]; then
+        dialog --msgbox "Keine Zeitzonen gefunden, die '$search_term' entsprechen." 10 50
+    fi
+done
 
-ln -sf /usr/share/zoneinfo/Europe/Vienna /etc/localtime
+options=()
+while IFS= read -r timezone; do
+    options+=("$timezone" "$timezone")
+done <<< "$filtered_timezones"
+
+SELECTED_TIMEZONE=$(dialog --clear --title "Zeitzone auswählen" --menu "Bitte wählen Sie eine Zeitzone aus:" 20 60 15 "${options[@]}" 3>&1 1>&2 2>&3 )
+ln -sf /usr/share/zoneinfo/$SELECTED_TIMEZONE /etc/localtime
 hwclock --systohc
-sed -i '127s/.//' /etc/locale.gen
-sed -i '171s/.//' /etc/locale.gen
+LOCALE=$(dialog --clear --title "Lokalizierung angeben" --msgbox "Bitte nennen die zu verwendete Lokalizierung\nFormatbeispiel: en_US oder de_DE" 15 60)
+echo "${LOCALE}.UTF-8" > /etc/locale.gen
 locale-gen
-echo "LANG=en_US.UTF-8" >/etc/locale.conf
-echo "archvm" >> /etc/hostname
+echo "LANG=${LOCALE}.UTF-8" >/etc/locale.conf
+dialog --no-cancel --inputbox "Bitte gib deinem Rechner einen Namen." 10 60 2> /etc/hostname
 dialog --title "Root Passwort" --msgbox "Bitte gib ein Passwort fuer ROOT ein" 10 60
 config_user root
 dialog --title "Benutzer hinzufuegen" --msgbox "Lass uns einen Benuzter erstellen" 10 60
@@ -45,3 +58,4 @@ cp /etc/sudoers /tmp/sudoers.tmp
 sed -i 's/^# \(%wheel ALL=(ALL:ALL) NOPASSWD: ALL\)/\1/' /tmp/sudoers.tmp
 visudo -cf /tmp/sudoers.tmp
 cp /tmp/sudoers.tmp /etc/sudoers
+dialog --clear --title "Installation abgeschlossen" --msgbox "Alles hat super geklappt und das Base System wurde erfolgreich installiert.\nWeitere Individualisierungen (Keyboard Einstellugen, erweiterte Locale Config, weitere Benutzer hinzufuegen) sind bitte manuell und selbststaendig durchzufuehren\n\nViel Spass mit deinem neuen Arch Linux" 20 60
