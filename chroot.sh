@@ -40,10 +40,16 @@ done <<< "$filtered_timezones"
 SELECTED_TIMEZONE=$(dialog --clear --title "Zeitzone auswählen" --menu "Bitte wählen Sie eine Zeitzone aus:" 20 60 15 "${options[@]}" 3>&1 1>&2 2>&3 )
 ln -sf /usr/share/zoneinfo/$SELECTED_TIMEZONE /etc/localtime
 hwclock --systohc
-LOCALE=$(dialog --clear --title "Lokalizierung angeben" --msgbox "Bitte nennen die zu verwendete Lokalizierung\nFormatbeispiel: en_US oder de_DE" 15 60)
-echo "${LOCALE}.UTF-8" > /etc/locale.gen
+LOCALE=$(dialog --clear --title "Lokalizierung angeben" --inputbox "Bitte nennen die zu verwendete Lokalizierung\nFormatbeispiel: en_US oder de_DE" 15 60 3>&1 1>&2 2>&3)
+echo "${LOCALE}.UTF-8 UTF-8" >> /etc/locale.gen
 locale-gen
-echo "LANG=${LOCALE}.UTF-8" >/etc/locale.conf
+echo "LANG=${LOCALE}.UTF-8" > /etc/locale.conf
+echo "LC_NUMERIC=${LOCALE}.UTF-8" >> /etc/locale.conf
+echo "LC_TIME=${LOCALE}.UTF-8" >> /etc/locale.conf
+echo "LC_MONETARY=${LOCALE}.UTF-8" >> /etc/locale.conf
+echo "LC_PAPER=${LOCALE}.UTF-8" >> /etc/locale.conf
+echo "LC_MEASUREMENT=${LOCALE}.UTF-8" >> /etc/locale.conf
+
 dialog --no-cancel --inputbox "Bitte gib deinem Rechner einen Namen." 10 60 2> /etc/hostname
 dialog --title "Root Passwort" --msgbox "Bitte gib ein Passwort fuer ROOT ein" 10 60
 config_user root
